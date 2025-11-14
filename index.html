@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Calendário Customizado</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    color: #fff;
+    text-align: center;
+    background-image: url('fundo.jpg'); /* substitua pelo seu arquivo JPG ou PNG */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  #clock, #customCalendar, #countdown {
+    font-size: 2em;
+    margin: 20px 0;
+  }
+  .colon {
+    margin: 0 5px;
+  }
+</style>
+</head>
+<body>
+
+<div id="customCalendar"></div>
+<div id="clock"></div>
+<div id="countdown"></div>
+<div id="copyright"></div>
+
+<script>
+const calendarConfig = {
+  start: new Date("2023-12-16T18:00:00-03:00"),
+  months: [
+    { name: "Adrump", days: 4 },
+    { name: "Catuji", days: 2 },
+    { name: "Waryui", days: 4 },
+    { name: "Carumk", days: 3 },
+    { name: "Dafer", days: 4 },
+    { name: "Farertyi", days: 2 },
+  ],
+  weekdays: ["Adedty", "Lathuj", "Sartunik"]
+};
+
+function calcularCalendario19Dias(now) {
+  const msPerDay = 24*60*60*1000;
+  const diffMs = now - calendarConfig.start;
+  const totalDays = Math.floor(diffMs / msPerDay);
+
+  const daysPerYear = calendarConfig.months.reduce((sum, m) => sum + m.days, 0);
+  const year = Math.floor(totalDays / daysPerYear) + 1;
+  let dayOfYear = (totalDays % daysPerYear) + 1;
+
+  let monthIndex = 0;
+  let dayInMonth = dayOfYear;
+  for (let m of calendarConfig.months) {
+    if (dayInMonth <= m.days) break;
+    dayInMonth -= m.days;
+    monthIndex++;
+  }
+
+  const weekdayIndex = totalDays % calendarConfig.weekdays.length;
+  const weekdayName = calendarConfig.weekdays[weekdayIndex];
+
+  const msIntoDay = diffMs % msPerDay;
+  const hours = Math.floor(msIntoDay / (1000*60*60));
+  const minutes = Math.floor((msIntoDay % (1000*60*60)) / (1000*60));
+  const seconds = Math.floor((msIntoDay % (1000*60)) / 1000);
+
+  return { year, month: calendarConfig.months[monthIndex].name, dayInMonth, weekday: weekdayName, hours, minutes, seconds };
+}
+
+function calcularProximoAnoNovo(now) {
+  const msPerDay = 24*60*60*1000;
+  const diffMs = now - calendarConfig.start;
+  const daysPerYear = calendarConfig.months.reduce((sum, m) => sum + m.days, 0);
+  const totalDays = Math.floor(diffMs / msPerDay);
+
+  const currentYear = Math.floor(totalDays / daysPerYear) + 1;
+  const nextYearStart = new Date(calendarConfig.start.getTime() + currentYear * daysPerYear * msPerDay);
+  
+  const msLeft = nextYearStart - now;
+  const days = Math.floor(msLeft / msPerDay);
+  const hours = Math.floor((msLeft % msPerDay) / (1000*60*60));
+  const minutes = Math.floor((msLeft % (1000*60*60)) / (1000*60));
+  const seconds = Math.floor((msLeft % (1000*60)) / 1000);
+
+  return { days, hours, minutes, seconds };
+}
+
+function updateClock() {
+  const now = new Date();
+  const cal = calcularCalendario19Dias(now);
+
+  const h = String(cal.hours).padStart(2,'0');
+  const m = String(cal.minutes).padStart(2,'0');
+  const s = String(cal.seconds).padStart(2,'0');
+
+  document.getElementById("clock").innerHTML =
+    `<span>${h[0]}</span><span>${h[1]}</span><span class="colon">:</span>` +
+    `<span>${m[0]}</span><span>${m[1]}</span><span class="colon">:</span>` +
+    `<span>${s[0]}</span><span>${s[1]}</span>`;
+
+  document.getElementById("customCalendar").textContent =
+    `${cal.weekday}, ${cal.dayInMonth} de ${cal.month} de ${cal.year}`;
+}
+
+function updateCountdown() {
+  const now = new Date();
+  const countdown = calcularProximoAnoNovo(now);
+
+  document.getElementById("countdown").textContent =
+    `Ano Novo em ${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`;
+}
+
+const year = new Date().getFullYear();
+document.getElementById('copyright').textContent = `© ${year} Pedro Barros. Todos os direitos reservados™`;
+
+updateClock();
+updateCountdown();
+setInterval(() => { updateClock(); updateCountdown(); }, 1000);
+</script>
+
+</body>
+</html>
